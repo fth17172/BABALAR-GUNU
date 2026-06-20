@@ -2,16 +2,21 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baba Asistanı v2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Baba Kabini Pro</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Baba Kabini">
+
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-color: #090d16;
+            --card-bg: #111827;
             --accent-color: #38bdf8;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #1f2937;
             --danger-color: #ef4444;
             --success-color: #10b981;
         }
@@ -24,11 +29,11 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: 20px 16px;
-            line-height: 1.5;
+            padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)) 16px;
+            line-height: 1.4;
         }
 
         header {
@@ -37,67 +42,82 @@
         }
 
         header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 4px;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         header p {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--accent-color);
-            font-weight: 500;
+            font-weight: 600;
+            margin-top: 2px;
         }
 
-        /* Veri Giriş Formu */
         .form-container {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 16px;
             margin-bottom: 24px;
         }
 
         .form-title {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             margin-bottom: 12px;
             color: var(--accent-color);
         }
 
         .input-group {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .input-field, .select-field {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-main);
-            font-size: 15px;
+            font-size: 16px;
             outline: none;
         }
 
-        .input-field:focus, .select-field:focus {
-            border-color: var(--accent-color);
+        /* Medya Yükleme Alanı */
+        .media-upload-box {
+            border: 1px dashed var(--border-color);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .media-preview-zone {
+            display: none;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .media-preview-zone img, .media-preview-zone video {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
         }
 
         .btn-submit {
             width: 100%;
             background-color: var(--success-color);
             color: white;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .search-container {
-            margin-bottom: 20px;
+            font-weight: 700;
         }
 
         .search-input {
@@ -109,31 +129,29 @@
             color: var(--text-main);
             font-size: 16px;
             outline: none;
+            margin-bottom: 16px;
         }
 
         .tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             overflow-x: auto;
             margin-bottom: 20px;
-            padding-bottom: 4px;
-            scrollbar-width: none;
+            padding-bottom: 6px;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .tabs::-webkit-scrollbar {
-            display: none;
-        }
+        .tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
             background-color: var(--card-bg);
             color: var(--text-muted);
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             white-space: nowrap;
-            cursor: pointer;
         }
 
         .tab-btn.active {
@@ -151,55 +169,65 @@
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
         .card-title {
             font-size: 16px;
-            font-weight: 600;
-            color: var(--text-main);
+            font-weight: 700;
         }
 
         .card-badge {
-            font-size: 11px;
+            font-size: 10px;
             background-color: var(--border-color);
             color: var(--accent-color);
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
             text-transform: uppercase;
         }
 
         .card-content {
             font-size: 14px;
             color: var(--text-muted);
-            word-break: break-word;
+            word-break: break-all;
+            margin-bottom: 12px;
+        }
+
+        .card-media {
+            margin-bottom: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .card-media img, .card-media video {
+            width: 100%;
+            display: block;
+            max-height: 250px;
+            object-fit: contain;
         }
 
         .card-actions {
             display: flex;
             gap: 8px;
-            margin-top: 4px;
         }
 
         .btn {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             border: none;
             border-radius: 8px;
             font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
+            font-weight: 700;
             text-align: center;
             text-decoration: none;
             display: inline-flex;
@@ -207,27 +235,13 @@
             justify-content: center;
         }
 
-        .btn-copy {
-            background-color: var(--border-color);
-            color: var(--text-main);
-        }
-
-        .btn-link {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-
-        .btn-delete {
-            background-color: transparent;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-            flex: 0 0 auto;
-            padding: 10px 14px;
-        }
+        .btn-copy { background-color: var(--border-color); color: var(--text-main); }
+        .btn-link { background-color: var(--accent-color); color: var(--bg-color); }
+        .btn-delete { background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); flex: 0 0 auto; }
 
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: calc(20px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background-color: var(--success-color);
@@ -235,52 +249,55 @@
             padding: 12px 24px;
             border-radius: 30px;
             font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1000;
-            pointer-events: none;
         }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Babalar Günü Kutlu Olsun!</h1>
-        <p>Kişisel İş & Not Asistanı</p>
+        <h1>Baba Kabini Pro</h1>
+        <p>Gelişmiş Medya & Bilgi Deposu</p>
     </header>
 
     <div class="form-container">
-        <div class="form-title">Yeni Not / Link Ekle</div>
-        <div class="input-group">
-            <input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Şirket IBAN)">
-        </div>
-        <div class="input-group">
-            <input type="text" id="itemContent" class="input-field" placeholder="İçerik veya Link (Örn: TR00...)">
-        </div>
+        <div class="form-title">Yeni Arşiv Ekle</div>
+        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Dükkan Tapusu)"></div>
+        <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 70px; resize: none;" placeholder="Not, IBAN veya Link girin..."></textarea></div>
+        
         <div class="input-group">
             <select id="itemCategory" class="select-field">
-                <option value="not">İş Notu</option>
-                <option value="link">Önemli Link (URL)</option>
-                <option value="fatura">Fatura & Hesap No</option>
+                <option value="is">💼 İş Dünyası</option>
+                <option value="finans">💳 Finans / IBAN</option>
+                <option value="fatura">📄 Faturalar</option>
+                <option value="medya">📁 Önemli Belgeler</option>
+                <option value="sifre">🔑 Şifreler / Özel</option>
             </select>
         </div>
-        <button class="btn-submit" onclick="addItem()">Sisteme Kaydet</button>
+
+        <div class="media-upload-box" onclick="document.getElementById('mediaInput').click()">
+            <span id="uploadLabel" style="font-size: 14px; color: var(--text-muted);">📷 Fotoğraf veya Video Ekle (İsteğe Bağlı)</span>
+            <input type="file" id="mediaInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event)">
+            <div class="media-preview-zone" id="previewZone"></div>
+        </div>
+
+        <button class="btn-submit" onclick="addItem()">Arşive Güvenle Kaydet</button>
     </div>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="Not veya link ara...">
-    </div>
+    <input type="text" id="searchInput" class="search-input" placeholder="Arşivde ara...">
 
-    <div class="tabs" id="tabsContainer">
+    <div class="tabs">
         <button class="tab-btn active" onclick="filterCategory('all')">Tümü</button>
-        <button class="tab-btn" onclick="filterCategory('not')">Notlar</button>
-        <button class="tab-btn" onclick="filterCategory('link')">Linkler</button>
+        <button class="tab-btn" onclick="filterCategory('is')">İş</button>
+        <button class="tab-btn" onclick="filterCategory('finans')">Finans</button>
         <button class="tab-btn" onclick="filterCategory('fatura')">Faturalar</button>
+        <button class="tab-btn" onclick="filterCategory('medya')">Belgeler</button>
+        <button class="tab-btn" onclick="filterCategory('sifre')">Şifreler</button>
     </div>
 
     <div class="cards-container" id="cardsContainer"></div>
@@ -288,24 +305,71 @@
     <div class="toast" id="toast">Kopyalandı!</div>
 
     <script>
-        // LocalStorage'dan verileri çek veya boş dizi oluştur
-        let BABA_VERILERI = JSON.parse(localStorage.getItem('baba_verileri')) || [
-            { id: 1, title: "Örnek Not", content: "Buraya eklediğin notlar sadece senin telefonunda saklanır.", category: "not", type: "text" }
-        ];
-
-        let currentCategory = 'all';
+        let ARSIV_DATA = JSON.parse(localStorage.getItem('baba_arsiv_v3')) || [];
+        let tempMediaData = null;
+        let tempMediaType = null;
 
         function saveToStorage() {
-            localStorage.setItem('baba_verileri', JSON.stringify(BABA_VERILERI));
+            try {
+                localStorage.setItem('baba_arsiv_v3', JSON.stringify(ARSIV_DATA));
+            } catch (e) {
+                alert("Hafıza doldu! Lütfen eski veya büyük medyalı bazı notları silin.");
+            }
         }
 
-        function isUrl(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return string.startsWith('http://') || string.startsWith('https://');
-            }
+        // AKILLI MEDYA İŞLEME VE SIKIŞTIRMA MOTORU
+        function processMedia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const previewZone = document.getElementById('previewZone');
+            const uploadLabel = document.getElementById('uploadLabel');
+            previewZone.innerHTML = '';
+            
+            tempMediaType = file.type.split('/')[0]; // 'image' veya 'video'
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (e) {
+                if (tempMediaType === 'image') {
+                    // Fotoğraf Sıkıştırma
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Boyutu küçült (Max 800px) hafızadan tasarruf için şoför koltuğu burası
+                        const MAX_DIM = 800;
+                        if (width > height && width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
+                        else if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // %50 kalitede JPEG yapıyoruz, lokal hafıza şişmesin diye
+                        tempMediaData = canvas.toDataURL('image/jpeg', 0.5);
+                        
+                        previewZone.innerHTML = `<img src="${tempMediaData}">`;
+                        previewZone.style.display = 'block';
+                        uploadLabel.innerText = "✓ Fotoğraf Hazır";
+                    };
+                } else if (tempMediaType === 'video') {
+                    // Videoları direkt Base64'e alıyoruz (Boyutu küçük videolar seçilmeli)
+                    if (file.size > 2.5 * 1024 * 1024) {
+                        alert("Video boyutu çok büyük! Hafıza sınırından dolayı lütfen 2MB altı kısa bir video seçin.");
+                        document.getElementById('mediaInput').value = '';
+                        return;
+                    }
+                    tempMediaData = e.target.result;
+                    previewZone.innerHTML = `<video src="${tempMediaData}" muted local loop></video>`;
+                    previewZone.style.display = 'block';
+                    uploadLabel.innerText = "✓ Video Hazır";
+                }
+            };
         }
 
         function renderCards(data) {
@@ -313,32 +377,35 @@
             container.innerHTML = '';
 
             if(data.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Kayıt bulunamadı.</div>`;
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Bulunamadı veya arşiv boş.</div>`;
                 return;
             }
 
             data.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                const isUrl = item.content.startsWith('http://') || item.content.startsWith('https://');
                 
-                let actionButtons = '';
-                if(item.type === 'url' || isUrl(item.content)) {
-                    actionButtons = `
-                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>
-                        <a href="${item.content}" target="_blank" class="btn btn-link">Git</a>
-                    `;
-                } else {
-                    actionButtons = `
-                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Metni Kopyala</button>
-                    `;
+                let mediaElement = '';
+                if (item.media) {
+                    if (item.mediaType === 'image') {
+                        mediaElement = `<div class="card-media"><img src="${item.media}" onclick="window.open(this.src)"></div>`;
+                    } else if (item.mediaType === 'video') {
+                        mediaElement = `<div class="card-media"><video src="${item.media}" controls playsinline></video></div>`;
+                    }
                 }
+
+                let actionButtons = isUrl ? 
+                    `<button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button><a href="${item.content}" target="_blank" class="btn btn-link">Git</a>` : 
+                    `<button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>`;
 
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="card-title">${item.title}</div>
                         <div class="card-badge">${item.category}</div>
                     </div>
-                    <div class="card-content">${item.content}</div>
+                    ${item.content ? `<div class="card-content">${item.content}</div>` : ''}
+                    ${mediaElement}
                     <div class="card-actions">
                         ${actionButtons}
                         <button class="btn btn-delete" onclick="deleteItem(${item.id})">Sil</button>
@@ -349,77 +416,80 @@
         }
 
         function addItem() {
-            const titleInput = document.getElementById('itemTitle');
-            const contentInput = document.getElementById('itemContent');
-            const categoryInput = document.getElementById('itemCategory');
+            const title = document.getElementById('itemTitle').value.trim();
+            const content = document.getElementById('itemContent').value.trim();
+            const category = document.getElementById('itemCategory').value;
 
-            if(!titleInput.value.trim() || !contentInput.value.trim()) {
-                alert('Lütfen başlık ve içerik alanlarını doldurun.');
+            if(!title) {
+                alert('Arşiv için en azından bir başlık girmelisin.');
                 return;
             }
 
-            const newItem = {
+            ARSIV_DATA.unshift({
                 id: Date.now(),
-                title: titleInput.value.trim(),
-                content: contentInput.value.trim(),
-                category: categoryInput.value,
-                type: isUrl(contentInput.value.trim()) ? 'url' : 'text'
-            };
+                title,
+                content,
+                category,
+                media: tempMediaData,
+                mediaType: tempMediaType
+            });
 
-            BABA_VERILERI.unshift(newItem);
             saveToStorage();
             searchAndFilter();
 
-            // Formu temizle
-            titleInput.value = '';
-            contentInput.value = '';
-            showToast('Sisteme eklendi!');
+            // Formu Sıfırla
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemContent').value = '';
+            document.getElementById('mediaInput').value = '';
+            document.getElementById('previewZone').style.display = 'none';
+            document.getElementById('uploadLabel').innerText = "📷 Fotoğraf veya Video Ekle (İsteğe Bağlı)";
+            tempMediaData = null;
+            tempMediaType = null;
+            
+            showToast('Arşive kaydedildi!');
         }
 
         function deleteItem(id) {
-            if(confirm('Bu notu silmek istediğinize emin misiniz?')) {
-                BABA_VERILERI = BABA_VERILERI.filter(item => item.id !== id);
+            if(confirm('Bu arşivi silmek istediğine emin misin, baba?')) {
+                ARSIV_DATA = ARSIV_DATA.filter(item => item.id !== id);
                 saveToStorage();
                 searchAndFilter();
-                showToast('Not silindi.');
+                showToast('Kayıt silindi.');
             }
         }
 
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Kopyalandı!');
-            });
+            if(!text) return;
+            navigator.clipboard.writeText(text).then(() => showToast('Kopyalandı!'));
         }
 
-        function showToast(message) {
+        function showToast(msg) {
             const toast = document.getElementById('toast');
-            toast.innerText = message;
+            toast.innerText = msg;
             toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
+            setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        function filterCategory(category) {
-            currentCategory = category;
-            const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
+        let currentCategory = 'all';
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             searchAndFilter();
         }
 
         function searchAndFilter() {
-            const searchTxt = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = BABA_VERILERI.filter(item => {
-                const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
-                const matchesSearch = item.title.toLowerCase().includes(searchTxt) || item.content.toLowerCase().includes(searchTxt);
-                return matchesCategory && matchesSearch;
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = ARSIV_DATA.filter(item => {
+                const matchesCat = currentCategory === 'all' || item.category === currentCategory;
+                const matchesSrc = item.title.toLowerCase().includes(query) || item.content.toLowerCase().includes(query);
+                return matchesCat && matchesSrc;
             });
             renderCards(filtered);
         }
 
         document.getElementById('searchInput').addEventListener('input', searchAndFilter);
-        renderCards(BABA_VERILERI);
+        renderCards(ARSIV_DATA);
     </script>
 </body>
 </html>
