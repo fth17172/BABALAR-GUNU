@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Baba Kabini Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-color-scheme=dark, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Baba Kabini Pro v3.5</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -84,40 +84,29 @@
             outline: none;
         }
 
-        /* Medya Yükleme Alanı */
-        .media-upload-box {
+        /* Çift Medya Yükleme Alanı */
+        .media-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .media-box {
+            flex: 1;
             border: 1px dashed var(--border-color);
-            padding: 12px;
+            padding: 12px 8px;
             border-radius: 10px;
             text-align: center;
             background-color: var(--bg-color);
             cursor: pointer;
-            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .media-preview-zone {
-            display: none;
-            margin-top: 8px;
-            max-height: 150px;
-            overflow: hidden;
-            border-radius: 8px;
-        }
-
-        .media-preview-zone img, .media-preview-zone video {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background-color: var(--success-color);
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 700;
+        .media-box.ready {
+            border-color: var(--success-color);
+            color: var(--success-color);
+            font-weight: bold;
         }
 
         .search-input {
@@ -198,22 +187,51 @@
         .card-content {
             font-size: 14px;
             color: var(--text-muted);
-            word-break: break-all;
+            word-break: break-word;
             margin-bottom: 12px;
         }
 
-        .card-media {
+        /* Önlü Arkalı Görünüm */
+        .card-media-wrapper {
+            display: flex;
+            gap: 8px;
             margin-bottom: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .card-media-wrapper::-webkit-scrollbar { display: none; }
+
+        .card-media-box {
+            flex: 0 0 calc(100% - 20px);
+            max-width: 100%;
             border-radius: 8px;
             overflow: hidden;
             background: #000;
+            position: relative;
         }
 
-        .card-media img, .card-media video {
+        .card-media-box.half {
+            flex: 0 0 100%;
+        }
+
+        .card-media-box img, .card-media-box video {
             width: 100%;
             display: block;
-            max-height: 250px;
+            max-height: 220px;
             object-fit: contain;
+        }
+
+        .media-label-tag {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
         }
 
         .card-actions {
@@ -233,10 +251,11 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
         }
 
         .btn-copy { background-color: var(--border-color); color: var(--text-main); }
-        .btn-link { background-color: var(--accent-color); color: var(--bg-color); }
+        .btn-share { background-color: var(--accent-color); color: var(--bg-color); }
         .btn-delete { background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); flex: 0 0 auto; }
 
         .toast {
@@ -253,6 +272,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1000;
+            pointer-events: none;
         }
 
         .toast.show { transform: translateX(-50%) translateY(0); }
@@ -262,28 +282,33 @@
 
     <header>
         <h1>Baba Kabini Pro</h1>
-        <p>Gelişmiş Medya & Bilgi Deposu</p>
+        <p>Arkalı Önlü Medya Arşivi & Hızlı Paylaşım</p>
     </header>
 
     <div class="form-container">
-        <div class="form-title">Yeni Arşiv Ekle</div>
-        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Dükkan Tapusu)"></div>
-        <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 70px; resize: none;" placeholder="Not, IBAN veya Link girin..."></textarea></div>
+        <div class="form-title">Yeni Arşiv Kaydı</div>
+        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Ehliyet veya Ruhsat)"></div>
+        <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 60px; resize: none;" placeholder="İçerik, IBAN veya Not..."></textarea></div>
         
         <div class="input-group">
             <select id="itemCategory" class="select-field">
                 <option value="is">💼 İş Dünyası</option>
                 <option value="finans">💳 Finans / IBAN</option>
                 <option value="fatura">📄 Faturalar</option>
-                <option value="medya">📁 Önemli Belgeler</option>
+                <option value="belge">📁 Kimlik & Belgeler</option>
                 <option value="sifre">🔑 Şifreler / Özel</option>
             </select>
         </div>
 
-        <div class="media-upload-box" onclick="document.getElementById('mediaInput').click()">
-            <span id="uploadLabel" style="font-size: 14px; color: var(--text-muted);">📷 Fotoğraf veya Video Ekle (İsteğe Bağlı)</span>
-            <input type="file" id="mediaInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event)">
-            <div class="media-preview-zone" id="previewZone"></div>
+        <div class="media-row">
+            <div class="media-box" id="frontBox" onclick="document.getElementById('frontInput').click()">
+                <span id="frontLabel">📷 Ön Yüz / Foto 1</span>
+                <input type="file" id="frontInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event, 'front')">
+            </div>
+            <div class="media-box" id="backBox" onclick="document.getElementById('backInput').click()">
+                <span id="backLabel">📷 Arka Yüz / Foto 2</span>
+                <input type="file" id="backInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event, 'back')">
+            </div>
         </div>
 
         <button class="btn-submit" onclick="addItem()">Arşive Güvenle Kaydet</button>
@@ -296,7 +321,7 @@
         <button class="tab-btn" onclick="filterCategory('is')">İş</button>
         <button class="tab-btn" onclick="filterCategory('finans')">Finans</button>
         <button class="tab-btn" onclick="filterCategory('fatura')">Faturalar</button>
-        <button class="tab-btn" onclick="filterCategory('medya')">Belgeler</button>
+        <button class="tab-btn" onclick="filterCategory('belge')">Belgeler</button>
         <button class="tab-btn" onclick="filterCategory('sifre')">Şifreler</button>
     </div>
 
@@ -305,34 +330,35 @@
     <div class="toast" id="toast">Kopyalandı!</div>
 
     <script>
-        let ARSIV_DATA = JSON.parse(localStorage.getItem('baba_arsiv_v3')) || [];
-        let tempMediaData = null;
-        let tempMediaType = null;
+        let ARSIV_DATA = JSON.parse(localStorage.getItem('baba_arsiv_v4')) || [];
+        let tempFrontMedia = null, tempFrontType = null;
+        let tempBackMedia = null, tempBackType = null;
 
         function saveToStorage() {
             try {
-                localStorage.setItem('baba_arsiv_v3', JSON.stringify(ARSIV_DATA));
+                localStorage.setItem('baba_arsiv_v4', JSON.stringify(ARSIV_DATA));
             } catch (e) {
-                alert("Hafıza doldu! Lütfen eski veya büyük medyalı bazı notları silin.");
+                alert("Hafıza limiti aşıldı! Lütfen eski veya büyük medyalı bazı kayıtları silin.");
             }
         }
 
-        // AKILLI MEDYA İŞLEME VE SIKIŞTIRMA MOTORU
-        function processMedia(event) {
+        // GENİŞLETİLMİŞ MEDYA İŞLEME VE SIKIŞTIRMA MOTORU (iOS FORMAT KORUMALI)
+        function processMedia(event, side) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const previewZone = document.getElementById('previewZone');
-            const uploadLabel = document.getElementById('uploadLabel');
-            previewZone.innerHTML = '';
+            const type = file.type.split('/')[0];
+            const fileExt = file.name.split('.').pop().toLowerCase();
             
-            tempMediaType = file.type.split('/')[0]; // 'image' veya 'video'
+            // Apple HEIC ve QuickTime MOV format uyumluluk koruması
+            let targetType = type;
+            if (fileExt === 'heic' || fileExt === 'heif') targetType = 'image';
+            if (fileExt === 'mov') targetType = 'video';
 
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function (e) {
-                if (tempMediaType === 'image') {
-                    // Fotoğraf Sıkıştırma
+                if (targetType === 'image') {
                     const img = new Image();
                     img.src = e.target.result;
                     img.onload = function () {
@@ -340,8 +366,8 @@
                         let width = img.width;
                         let height = img.height;
                         
-                        // Boyutu küçült (Max 800px) hafızadan tasarruf için şoför koltuğu burası
-                        const MAX_DIM = 800;
+                        // LocalStorage'ı patlatmamak için max 700px sıkıştırma çözünürlüğü
+                        const MAX_DIM = 700;
                         if (width > height && width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
                         else if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
 
@@ -350,26 +376,35 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // %50 kalitede JPEG yapıyoruz, lokal hafıza şişmesin diye
-                        tempMediaData = canvas.toDataURL('image/jpeg', 0.5);
-                        
-                        previewZone.innerHTML = `<img src="${tempMediaData}">`;
-                        previewZone.style.display = 'block';
-                        uploadLabel.innerText = "✓ Fotoğraf Hazır";
+                        const compressedData = canvas.toDataURL('image/jpeg', 0.4); // %40 kalite ile sıkıştırma
+                        setMediaState(side, compressedData, 'image');
                     };
-                } else if (tempMediaType === 'video') {
-                    // Videoları direkt Base64'e alıyoruz (Boyutu küçük videolar seçilmeli)
-                    if (file.size > 2.5 * 1024 * 1024) {
-                        alert("Video boyutu çok büyük! Hafıza sınırından dolayı lütfen 2MB altı kısa bir video seçin.");
-                        document.getElementById('mediaInput').value = '';
+                } else {
+                    // Video dosyaları için 3MB limiti
+                    if (file.size > 3 * 1024 * 1024) {
+                        alert("Video boyutu çok yüksek! Alan kazanmak için lütfen 3MB altı kısa bir video yükleyin.");
                         return;
                     }
-                    tempMediaData = e.target.result;
-                    previewZone.innerHTML = `<video src="${tempMediaData}" muted local loop></video>`;
-                    previewZone.style.display = 'block';
-                    uploadLabel.innerText = "✓ Video Hazır";
+                    setMediaState(side, e.target.result, 'video');
                 }
             };
+        }
+
+        function setMediaState(side, data, type) {
+            if (side === 'front') {
+                tempFrontMedia = data;
+                tempFrontType = type;
+                const box = document.getElementById('frontBox');
+                box.classList.add('ready');
+                document.getElementById('frontLabel').innerText = "✓ Ön Hazır";
+            } else {
+                tempBackMedia = data;
+                tempBackType = type;
+                const box = document.getElementById('backBox');
+                box.classList.add('ready');
+                document.getElementById('backLabel').innerText = "✓ Arka Hazır";
+            }
+            showToast('Medya hazırlandı.');
         }
 
         function renderCards(data) {
@@ -377,27 +412,33 @@
             container.innerHTML = '';
 
             if(data.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Bulunamadı veya arşiv boş.</div>`;
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Arşiv boş veya sonuç yok.</div>`;
                 return;
             }
 
             data.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const isUrl = item.content.startsWith('http://') || item.content.startsWith('https://');
                 
-                let mediaElement = '';
-                if (item.media) {
-                    if (item.mediaType === 'image') {
-                        mediaElement = `<div class="card-media"><img src="${item.media}" onclick="window.open(this.src)"></div>`;
-                    } else if (item.mediaType === 'video') {
-                        mediaElement = `<div class="card-media"><video src="${item.media}" controls playsinline></video></div>`;
+                let mediaWrapper = '';
+                if (item.frontMedia || item.backMedia) {
+                    mediaWrapper = `<div class="card-media-wrapper">`;
+                    if (item.frontMedia) {
+                        mediaWrapper += `
+                            <div class="card-media-box">
+                                <span class="media-label-tag">ÖN / 1</span>
+                                ${item.frontType === 'image' ? `<img src="${item.frontMedia}">` : `<video src="${item.frontMedia}" controls playsinline></video>`}
+                            </div>`;
                     }
+                    if (item.backMedia) {
+                        mediaWrapper += `
+                            <div class="card-media-box">
+                                <span class="media-label-tag">ARKA / 2</span>
+                                ${item.backType === 'image' ? `<img src="${item.backMedia}">` : `<video src="${item.backMedia}" controls playsinline></video>`}
+                            </div>`;
+                    }
+                    mediaWrapper += `</div>`;
                 }
-
-                let actionButtons = isUrl ? 
-                    `<button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button><a href="${item.content}" target="_blank" class="btn btn-link">Git</a>` : 
-                    `<button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>`;
 
                 card.innerHTML = `
                     <div class="card-header">
@@ -405,9 +446,10 @@
                         <div class="card-badge">${item.category}</div>
                     </div>
                     ${item.content ? `<div class="card-content">${item.content}</div>` : ''}
-                    ${mediaElement}
+                    ${mediaWrapper}
                     <div class="card-actions">
-                        ${actionButtons}
+                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Metni Kopyala</button>
+                        <button class="btn btn-share" onclick="shareCard('${item.title}', '${item.content}')">Paylaş</button>
                         <button class="btn btn-delete" onclick="deleteItem(${item.id})">Sil</button>
                     </div>
                 `;
@@ -421,7 +463,7 @@
             const category = document.getElementById('itemCategory').value;
 
             if(!title) {
-                alert('Arşiv için en azından bir başlık girmelisin.');
+                alert('Lütfen en azından bir başlık girin, baba.');
                 return;
             }
 
@@ -430,27 +472,48 @@
                 title,
                 content,
                 category,
-                media: tempMediaData,
-                mediaType: tempMediaType
+                frontMedia: tempFrontMedia,
+                frontType: tempFrontType,
+                backMedia: tempBackMedia,
+                backType: tempBackType
             });
 
             saveToStorage();
             searchAndFilter();
 
-            // Formu Sıfırla
+            // Form Sıfırlama
             document.getElementById('itemTitle').value = '';
             document.getElementById('itemContent').value = '';
-            document.getElementById('mediaInput').value = '';
-            document.getElementById('previewZone').style.display = 'none';
-            document.getElementById('uploadLabel').innerText = "📷 Fotoğraf veya Video Ekle (İsteğe Bağlı)";
-            tempMediaData = null;
-            tempMediaType = null;
+            document.getElementById('frontInput').value = '';
+            document.getElementById('backInput').value = '';
             
-            showToast('Arşive kaydedildi!');
+            const fBox = document.getElementById('frontBox'); fBox.classList.remove('ready');
+            const bBox = document.getElementById('backBox'); bBox.classList.remove('ready');
+            document.getElementById('frontLabel').innerText = "📷 Ön Yüz / Foto 1";
+            document.getElementById('backLabel').innerText = "📷 Arka Yüz / Foto 2";
+
+            tempFrontMedia = null; tempFrontType = null;
+            tempBackMedia = null; tempBackType = null;
+            
+            showToast('Arşive başarıyla eklendi!');
+        }
+
+        // iOS NATIVE SHARE (YEREL PAYLAŞIM) ENTEGRASYONU
+        function shareCard(title, content) {
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: `${title}\n\n${content}`
+                }).catch((error) => console.log('Paylaşım iptal edildi', error));
+            } else {
+                // Tarayıcı desteklemiyorsa otomatik kopyala
+                copyToClipboard(content);
+                showToast('Paylaşım desteklenmiyor, metin kopyalandı!');
+            }
         }
 
         function deleteItem(id) {
-            if(confirm('Bu arşivi silmek istediğine emin misin, baba?')) {
+            if(confirm('Bu arşiv kaydını silmek istediğine emin misin?')) {
                 ARSIV_DATA = ARSIV_DATA.filter(item => item.id !== id);
                 saveToStorage();
                 searchAndFilter();
