@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baba Asistanı v1.0</title>
+    <title>Baba Asistanı v2.0</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -12,6 +12,8 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #334155;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
         }
 
         * {
@@ -47,6 +49,53 @@
             font-weight: 500;
         }
 
+        /* Veri Giriş Formu */
+        .form-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-field, .select-field {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+        }
+
+        .input-field:focus, .select-field:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--success-color);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .search-container {
             margin-bottom: 20px;
         }
@@ -60,11 +109,6 @@
             color: var(--text-main);
             font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
         }
 
         .tabs {
@@ -173,13 +217,20 @@
             color: var(--bg-color);
         }
 
-        /* Toast Bildirimi */
+        .btn-delete {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            flex: 0 0 auto;
+            padding: 10px 14px;
+        }
+
         .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background-color: #10b981;
+            background-color: var(--success-color);
             color: white;
             padding: 12px 24px;
             border-radius: 30px;
@@ -200,8 +251,26 @@
 
     <header>
         <h1>Babalar Günü Kutlu Olsun!</h1>
-        <p>Hızlı Erişim & İş Asistanı</p>
+        <p>Kişisel İş & Not Asistanı</p>
     </header>
+
+    <div class="form-container">
+        <div class="form-title">Yeni Not / Link Ekle</div>
+        <div class="input-group">
+            <input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Şirket IBAN)">
+        </div>
+        <div class="input-group">
+            <input type="text" id="itemContent" class="input-field" placeholder="İçerik veya Link (Örn: TR00...)">
+        </div>
+        <div class="input-group">
+            <select id="itemCategory" class="select-field">
+                <option value="not">İş Notu</option>
+                <option value="link">Önemli Link (URL)</option>
+                <option value="fatura">Fatura & Hesap No</option>
+            </select>
+        </div>
+        <button class="btn-submit" onclick="addItem()">Sisteme Kaydet</button>
+    </div>
 
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="Not veya link ara...">
@@ -209,80 +278,58 @@
 
     <div class="tabs" id="tabsContainer">
         <button class="tab-btn active" onclick="filterCategory('all')">Tümü</button>
-        <button class="tab-btn" onclick="filterCategory('not')">İş Notları</button>
-        <button class="tab-btn" onclick="filterCategory('link')">Önemli Linkler</button>
-        <button class="tab-btn" onclick="filterCategory('fatura')">Faturalar & No</button>
+        <button class="tab-btn" onclick="filterCategory('not')">Notlar</button>
+        <button class="tab-btn" onclick="filterCategory('link')">Linkler</button>
+        <button class="tab-btn" onclick="filterCategory('fatura')">Faturalar</button>
     </div>
 
-    <div class="cards-container" id="cardsContainer">
-        </div>
+    <div class="cards-container" id="cardsContainer"></div>
 
     <div class="toast" id="toast">Kopyalandı!</div>
 
     <script>
-        // BABANIN VERİLERİNİ BURADAN GÜNCELLE
-        const BABA_VERILERI = [
-            {
-                id: 1,
-                title: "Şirket Muhasebe IBAN",
-                content: "TR99 0001 0101 0101 0101 0101 01 - Alıcı: Baba Ltd. Şti.",
-                category: "fatura",
-                type: "text"
-            },
-            {
-                id: 2,
-                title: "E-Devlet Hızlı Giriş",
-                content: "https://www.turkiye.gov.tr/",
-                category: "link",
-                type: "url"
-            },
-            {
-                id: 3,
-                title: "Müşteri Görüşme Notları",
-                content: "Pazartesi günü tedarik zinciri kontrol edilecek, sevkiyat listesi onaylanacak.",
-                category: "not",
-                type: "text"
-            },
-            {
-                id: 4,
-                title: "Ev İnterneti Abone No",
-                content: "Abone No: 882349123 - Telekom",
-                category: "fatura",
-                type: "text"
-            },
-            {
-                id: 5,
-                title: "Resmi Gazete Takip",
-                content: "https://www.resmigazete.gov.tr/",
-                category: "link",
-                type: "url"
-            }
+        // LocalStorage'dan verileri çek veya boş dizi oluştur
+        let BABA_VERILERI = JSON.parse(localStorage.getItem('baba_verileri')) || [
+            { id: 1, title: "Örnek Not", content: "Buraya eklediğin notlar sadece senin telefonunda saklanır.", category: "not", type: "text" }
         ];
 
         let currentCategory = 'all';
+
+        function saveToStorage() {
+            localStorage.setItem('baba_verileri', JSON.stringify(BABA_VERILERI));
+        }
+
+        function isUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return string.startsWith('http://') || string.startsWith('https://');
+            }
+        }
 
         function renderCards(data) {
             const container = document.getElementById('cardsContainer');
             container.innerHTML = '';
 
             if(data.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Sonuç bulunamadı.</div>`;
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Kayıt bulunamadı.</div>`;
                 return;
             }
 
             data.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-
+                
                 let actionButtons = '';
-                if(item.type === 'url') {
+                if(item.type === 'url' || isUrl(item.content)) {
                     actionButtons = `
-                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Linki Kopyala</button>
+                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>
                         <a href="${item.content}" target="_blank" class="btn btn-link">Git</a>
                     `;
                 } else {
                     actionButtons = `
-                        <button class="btn btn-copy" style="flex:1;" onclick="copyToClipboard('${item.content}')">Metni Kopyala</button>
+                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Metni Kopyala</button>
                     `;
                 }
 
@@ -292,50 +339,87 @@
                         <div class="card-badge">${item.category}</div>
                     </div>
                     <div class="card-content">${item.content}</div>
-                    <div class="card-actions">${actionButtons}</div>
+                    <div class="card-actions">
+                        ${actionButtons}
+                        <button class="btn btn-delete" onclick="deleteItem(${item.id})">Sil</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
         }
 
+        function addItem() {
+            const titleInput = document.getElementById('itemTitle');
+            const contentInput = document.getElementById('itemContent');
+            const categoryInput = document.getElementById('itemCategory');
+
+            if(!titleInput.value.trim() || !contentInput.value.trim()) {
+                alert('Lütfen başlık ve içerik alanlarını doldurun.');
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                content: contentInput.value.trim(),
+                category: categoryInput.value,
+                type: isUrl(contentInput.value.trim()) ? 'url' : 'text'
+            };
+
+            BABA_VERILERI.unshift(newItem);
+            saveToStorage();
+            searchAndFilter();
+
+            // Formu temizle
+            titleInput.value = '';
+            contentInput.value = '';
+            showToast('Sisteme eklendi!');
+        }
+
+        function deleteItem(id) {
+            if(confirm('Bu notu silmek istediğinize emin misiniz?')) {
+                BABA_VERILERI = BABA_VERILERI.filter(item => item.id !== id);
+                saveToStorage();
+                searchAndFilter();
+                showToast('Not silindi.');
+            }
+        }
+
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 2000);
+                showToast('Kopyalandı!');
             });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
         }
 
         function filterCategory(category) {
             currentCategory = category;
-
-            // Tab butonlarının aktifliğini değiştir
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-
             searchAndFilter();
         }
 
         function searchAndFilter() {
             const searchTxt = document.getElementById('searchInput').value.toLowerCase();
-
             const filtered = BABA_VERILERI.filter(item => {
                 const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
                 const matchesSearch = item.title.toLowerCase().includes(searchTxt) || item.content.toLowerCase().includes(searchTxt);
                 return matchesCategory && matchesSearch;
             });
-
             renderCards(filtered);
         }
 
-        // Event Listeners
         document.getElementById('searchInput').addEventListener('input', searchAndFilter);
-
-        // İlk yükleme
         renderCards(BABA_VERILERI);
     </script>
 </body>
-<!-- </html> -->
+</html>
