@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Baba Kabini Pro v4.0</title>
+    <title>Baba Kabini Pro v5.0</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,6 +19,7 @@
             --border-color: #1f2937;
             --danger-color: #ef4444;
             --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
 
         * {
@@ -84,29 +85,40 @@
             outline: none;
         }
 
-        /* Çift Medya Yükleme Alanı - Varsayılan olarak gizli */
-        .media-row {
-            display: none;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .media-box {
-            flex: 1;
+        /* Çoklu Medya Yükleme Alanı */
+        .media-upload-container {
             border: 1px dashed var(--border-color);
-            padding: 12px 8px;
+            padding: 12px;
             border-radius: 10px;
             text-align: center;
             background-color: var(--bg-color);
             cursor: pointer;
-            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .media-count-badge {
+            font-size: 13px;
             color: var(--text-muted);
         }
 
-        .media-box.ready {
-            border-color: var(--success-color);
+        .media-count-badge.has-media {
             color: var(--success-color);
             font-weight: bold;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--success-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .btn-submit.edit-mode {
+            background-color: var(--warning-color);
         }
 
         .search-input {
@@ -191,7 +203,8 @@
             margin-bottom: 12px;
         }
 
-        .card-media-wrapper {
+        /* Çoklu Medya Görünüm Kaydırıcı */
+        .card-media-slider {
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
@@ -199,9 +212,9 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        .card-media-wrapper::-webkit-scrollbar { display: none; }
+        .card-media-slider::-webkit-scrollbar { display: none; }
 
-        .card-media-box {
+        .slider-item {
             flex: 0 0 calc(100% - 20px);
             max-width: 100%;
             border-radius: 8px;
@@ -210,14 +223,14 @@
             position: relative;
         }
 
-        .card-media-box img, .card-media-box video {
+        .slider-item img, .slider-item video {
             width: 100%;
             display: block;
             max-height: 220px;
             object-fit: contain;
         }
 
-        .media-label-tag {
+        .media-index-tag {
             position: absolute;
             top: 6px;
             left: 6px;
@@ -231,15 +244,15 @@
 
         .card-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn {
             flex: 1;
-            padding: 12px;
+            padding: 12px 6px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             text-align: center;
             text-decoration: none;
@@ -250,7 +263,8 @@
         }
 
         .btn-copy { background-color: var(--border-color); color: var(--text-main); }
-        .btn-share { background-color: #25d366; color: #fff; } /* WhatsApp Yeşili */
+        .btn-share { background-color: #25d366; color: #fff; }
+        .btn-edit { background-color: rgba(245, 158, 11, 0.2); color: var(--warning-color); border: 1px solid var(--warning-color); }
         .btn-delete { background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); flex: 0 0 auto; }
 
         .toast {
@@ -277,36 +291,35 @@
 
     <header>
         <h1>Baba Kabini Pro</h1>
-        <p>Akıllı Filtre & Doğrudan WhatsApp Paylaşımı</p>
+        <p>Gelişmiş Çoklu Medya Arşivi & Düzenleme</p>
     </header>
 
     <div class="form-container">
-        <div class="form-title">Yeni Arşiv Kaydı</div>
-        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Şirket IBAN veya Ehliyet)"></div>
-        <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 60px; resize: none;" placeholder="İçerik, IBAN veya Not..."></textarea></div>
+        <div class="form-title" id="formTitle">Yeni Arşiv Kaydı</div>
+        <input type="hidden" id="editItemId" value="">
+        
+        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Dükkan Kirası veya Ruhsatlar)"></div>
+        <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 60px; resize: none;" placeholder="Not, IBAN, numara veya açıklama..."></textarea></div>
         
         <div class="input-group">
-            <select id="itemCategory" class="select-field" onchange="toggleMediaRow()">
+            <select id="itemCategory" class="select-field">
                 <option value="is">💼 İş Dünyası</option>
                 <option value="finans">💳 Finans / IBAN</option>
                 <option value="fatura">📄 Faturalar</option>
                 <option value="belge">📁 Kimlik & Belgeler</option>
                 <option value="sifre">🔑 Şifreler / Özel</option>
+                <option value="araba">🚗 Araba / Araçlar</option>
+                <option value="saglik">🩺 Sağlık Notları</option>
+                <option value="pazar">🛒 Alışveriş / Pazar</option>
             </select>
         </div>
 
-        <div class="media-row" id="mediaRow">
-            <div class="media-box" id="frontBox" onclick="document.getElementById('frontInput').click()">
-                <span id="frontLabel">📷 Ön Yüz / Foto 1</span>
-                <input type="file" id="frontInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event, 'front')">
-            </div>
-            <div class="media-box" id="backBox" onclick="document.getElementById('backInput').click()">
-                <span id="backLabel">📷 Arka Yüz / Foto 2</span>
-                <input type="file" id="backInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event, 'back')">
-            </div>
+        <div class="media-upload-container" onclick="document.getElementById('multipleMediaInput').click()">
+            <span id="uploadStatusLabel" class="media-count-badge">📷 Fotoğraflar / Videolar Ekle (Birden Fazla Seçebilirsin)</span>
+            <input type="file" id="multipleMediaInput" accept="image/*,video/*" multiple style="display: none;" onchange="processMultipleMedia(event)">
         </div>
 
-        <button class="btn-submit" onclick="addItem()">Arşive Güvenle Kaydet</button>
+        <button class="btn-submit" id="submitBtn" onclick="saveItem()">Arşive Güvenle Kaydet</button>
     </div>
 
     <input type="text" id="searchInput" class="search-input" placeholder="Arşivde ara...">
@@ -318,6 +331,9 @@
         <button class="tab-btn" onclick="filterCategory('fatura')">Faturalar</button>
         <button class="tab-btn" onclick="filterCategory('belge')">Belgeler</button>
         <button class="tab-btn" onclick="filterCategory('sifre')">Şifreler</button>
+        <button class="tab-btn" onclick="filterCategory('araba')">Araba</button>
+        <button class="tab-btn" onclick="filterCategory('saglik')">Sağlık</button>
+        <button class="tab-btn" onclick="filterCategory('pazar')">Alışveriş</button>
     </div>
 
     <div class="cards-container" id="cardsContainer"></div>
@@ -325,98 +341,79 @@
     <div class="toast" id="toast">Kopyalandı!</div>
 
     <script>
-        let ARSIV_DATA = JSON.parse(localStorage.getItem('baba_arsiv_v4')) || [];
-        let tempFrontMedia = null, tempFrontType = null;
-        let tempBackMedia = null, tempBackType = null;
+        let ARSIV_DATA = JSON.parse(localStorage.getItem('baba_arsiv_v5')) || [];
+        let tempMediaList = []; // Yüklenen çoklu medyaları tutacak [{data, type}]
 
         function saveToStorage() {
             try {
-                localStorage.setItem('baba_arsiv_v4', JSON.stringify(ARSIV_DATA));
+                localStorage.setItem('baba_arsiv_v5', JSON.stringify(ARSIV_DATA));
             } catch (e) {
-                alert("Hafıza limiti aşıldı! Lütfen eski veya büyük medyalı bazı kayıtları silin.");
+                alert("Hafıza limiti doldu! Lütfen çok eski veya çok fazla medyalı bazı kayıtları temizleyin.");
             }
         }
 
-        // KATEGORİ DEĞİŞİNCE FOTOĞRAF ALANINI GÖSTER/GİZLE
-        function toggleMediaRow() {
-            const category = document.getElementById('itemCategory').value;
-            const mediaRow = document.getElementById('mediaRow');
-            if (category === 'belge') {
-                mediaRow.style.display = 'flex';
-            } else {
-                mediaRow.style.display = 'none';
-                resetMediaInputs(); // Başka kategoriye geçerse seçilen resimleri temizle
-            }
-        }
+        // ÇOKLU MEDYA SIKIŞTIRMA VE İŞLEME MOTORU
+        function processMultipleMedia(event) {
+            const files = event.target.files;
+            if (!files.length) return;
 
-        function resetMediaInputs() {
-            document.getElementById('frontInput').value = '';
-            document.getElementById('backInput').value = '';
-            document.getElementById('frontBox').classList.remove('ready');
-            document.getElementById('backBox').classList.remove('ready');
-            document.getElementById('frontLabel').innerText = "📷 Ön Yüz / Foto 1";
-            document.getElementById('backLabel').innerText = "📷 Arka Yüz / Foto 2";
-            tempFrontMedia = null; tempFrontType = null;
-            tempBackMedia = null; tempBackType = null;
-        }
+            // Her yeni seçimde eskisinin üzerine ekleme yapmasın, sıfırlasın istiyorsan burayı sıfırla
+            tempMediaList = []; 
+            let processedCount = 0;
 
-        function processMedia(event, side) {
-            const file = event.target.files[0];
-            if (!file) return;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const type = file.type.split('/')[0];
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                
+                let targetType = type;
+                if (fileExt === 'heic' || fileExt === 'heif') targetType = 'image';
+                if (fileExt === 'mov') targetType = 'video';
 
-            const type = file.type.split('/')[0];
-            const fileExt = file.name.split('.').pop().toLowerCase();
-            
-            let targetType = type;
-            if (fileExt === 'heic' || fileExt === 'heif') targetType = 'image';
-            if (fileExt === 'mov') targetType = 'video';
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function (e) {
+                    if (targetType === 'image') {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = function () {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            const MAX_DIM = 650; // Alan tasarrufu için çözünürlük dengesi
+                            if (width > height && width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
+                            else if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
 
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (e) {
-                if (targetType === 'image') {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function () {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        const MAX_DIM = 700;
-                        if (width > height && width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
-                        else if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
 
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const compressedData = canvas.toDataURL('image/jpeg', 0.4);
-                        setMediaState(side, compressedData, 'image');
-                    };
-                } else {
-                    if (file.size > 3 * 1024 * 1024) {
-                        alert("Video boyutu çok yüksek! Lütfen 3MB altı kısa bir video yükleyin.");
-                        return;
+                            const compressedData = canvas.toDataURL('image/jpeg', 0.4);
+                            tempMediaList.push({ data: compressedData, type: 'image' });
+                            checkProgress(++processedCount, files.length);
+                        };
+                    } else {
+                        if (file.size > 2.5 * 1024 * 1024) {
+                            alert(`${file.name} çok büyük! Videolar max 2.5MB olmalıdır.`);
+                            checkProgress(++processedCount, files.length);
+                            return;
+                        }
+                        tempMediaList.push({ data: e.target.result, type: 'video' });
+                        checkProgress(++processedCount, files.length);
                     }
-                    setMediaState(side, e.target.result, 'video');
-                }
-            };
+                };
+            }
         }
 
-        function setMediaState(side, data, type) {
-            if (side === 'front') {
-                tempFrontMedia = data;
-                tempFrontType = type;
-                document.getElementById('frontBox').classList.add('ready');
-                document.getElementById('frontLabel').innerText = "✓ Ön Hazır";
-            } else {
-                tempBackMedia = data;
-                tempBackType = type;
-                document.getElementById('backBox').classList.add('ready');
-                document.getElementById('backLabel').innerText = "✓ Arka Hazır";
+        function checkProgress(current, total) {
+            if (current === total) {
+                const label = document.getElementById('uploadStatusLabel');
+                label.classList.add('has-media');
+                label.innerText = `✓ ${tempMediaList.length} Medya Başarıyla Yüklendi`;
+                showToast('Medyalar hazır.');
             }
-            showToast('Medya hazır.');
         }
 
         function renderCards(data) {
@@ -424,7 +421,7 @@
             container.innerHTML = '';
 
             if(data.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Sonuç bulunamadı.</div>`;
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Kayıt bulunamadı.</div>`;
                 return;
             }
 
@@ -432,24 +429,17 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                let mediaWrapper = '';
-                if (item.frontMedia || item.backMedia) {
-                    mediaWrapper = `<div class="card-media-wrapper">`;
-                    if (item.frontMedia) {
-                        mediaWrapper += `
-                            <div class="card-media-box">
-                                <span class="media-label-tag">ÖN YÜZ</span>
-                                ${item.frontType === 'image' ? `<img src="${item.frontMedia}">` : `<video src="${item.frontMedia}" controls playsinline></video>`}
+                let mediaSliderHtml = '';
+                if (item.medias && item.medias.length > 0) {
+                    mediaSliderHtml = `<div class="card-media-slider">`;
+                    item.medias.forEach((media, index) => {
+                        mediaSliderHtml += `
+                            <div class="slider-item">
+                                <span class="media-index-tag">${index + 1} / ${item.medias.length}</span>
+                                ${media.type === 'image' ? `<img src="${media.data}">` : `<video src="${media.data}" controls playsinline></video>`}
                             </div>`;
-                    }
-                    if (item.backMedia) {
-                        mediaWrapper += `
-                            <div class="card-media-box">
-                                <span class="media-label-tag">ARKA YÜZ</span>
-                                ${item.backType === 'image' ? `<img src="${item.backMedia}">` : `<video src="${item.backMedia}" controls playsinline></video>`}
-                            </div>`;
-                    }
-                    mediaWrapper += `</div>`;
+                    });
+                    mediaSliderHtml += `</div>`;
                 }
 
                 card.innerHTML = `
@@ -458,10 +448,11 @@
                         <div class="card-badge">${item.category}</div>
                     </div>
                     ${item.content ? `<div class="card-content">${item.content}</div>` : ''}
-                    ${mediaWrapper}
+                    ${mediaSliderHtml}
                     <div class="card-actions">
                         <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>
                         <button class="btn btn-share" onclick="shareToWhatsApp('${item.title}', '${item.content}')">WhatsApp</button>
+                        <button class="btn btn-edit" onclick="startEdit(${item.id})">Düzenle</button>
                         <button class="btn btn-delete" onclick="deleteItem(${item.id})">Sil</button>
                     </div>
                 `;
@@ -469,53 +460,112 @@
             });
         }
 
-        function addItem() {
+        // KAYDETME VE GÜNCELLEME ORTAK FONKSİYONU
+        function saveItem() {
+            const idInput = document.getElementById('editItemId').value;
             const title = document.getElementById('itemTitle').value.trim();
             const content = document.getElementById('itemContent').value.trim();
             const category = document.getElementById('itemCategory').value;
 
             if(!title) {
-                alert('Lütfen bir başlık girin.');
+                alert('Lütfen başlık alanını boş bırakmayın.');
                 return;
             }
 
-            ARSIV_DATA.unshift({
-                id: Date.now(),
-                title,
-                content,
-                category,
-                frontMedia: category === 'belge' ? tempFrontMedia : null,
-                frontType: category === 'belge' ? tempFrontType : null,
-                backMedia: category === 'belge' ? tempBackMedia : null,
-                backType: category === 'belge' ? tempBackType : null
-            });
+            if (idInput) {
+                // DÜZENLEME MODU (GÜNCELLEME)
+                const targetIndex = ARSIV_DATA.findIndex(item => item.id == idInput);
+                if (targetIndex !== -1) {
+                    ARSIV_DATA[targetIndex].title = title;
+                    ARSIV_DATA[targetIndex].content = content;
+                    ARSIV_DATA[targetIndex].category = category;
+                    // Eğer yeni medya seçilmediyse eskisini koru
+                    if (tempMediaList.length > 0) {
+                        ARSIV_DATA[targetIndex].medias = tempMediaList;
+                    }
+                }
+                showToast('Kayıt güncellendi!');
+            } else {
+                // SIFIRDAN YENİ KAYIT EKLEME
+                ARSIV_DATA.unshift({
+                    id: Date.now(),
+                    title,
+                    content,
+                    category,
+                    medias: tempMediaList
+                });
+                showToast('Arşive eklendi!');
+            }
 
             saveToStorage();
+            resetForm();
             searchAndFilter();
-
-            // Sıfırla
-            document.getElementById('itemTitle').value = '';
-            document.getElementById('itemContent').value = '';
-            resetMediaInputs();
-            document.getElementById('itemCategory').value = 'is';
-            toggleMediaRow();
-            
-            showToast('Arşive kaydedildi!');
         }
 
-        // DOĞRUDAN WHATSAPP PAYLAŞIMI
+        // DÜZENLEME MODUNU BAŞLATMA
+        function startEdit(id) {
+            const item = ARSIV_DATA.find(i => i.id == id);
+            if (!item) return;
+
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('itemTitle').value = item.title;
+            document.getElementById('itemContent').value = item.content;
+            document.getElementById('itemCategory').value = item.category;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Değişiklikleri Güncelle";
+            submitBtn.classList.add('edit-mode');
+            
+            document.getElementById('formTitle').innerText = "Kaydı Düzenle 📝";
+            
+            // Mevcut medya durumunu temizle/hazırla
+            tempMediaList = item.medias || [];
+            const label = document.getElementById('uploadStatusLabel');
+            if (tempMediaList.length > 0) {
+                label.classList.add('has-media');
+                label.innerText = `✓ Mevcut ${tempMediaList.length} Medya Korunuyor (Değiştirmek İçin Yenilerini Seç)`;
+            } else {
+                label.classList.remove('has-media');
+                label.innerText = `📷 Fotoğraflar / Videolar Ekle (Birden Fazla Seçebilirsin)`;
+            }
+
+            // Sayfayı yukarı form alanına yumuşakça kaydır
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('editItemId').value = '';
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemContent').value = '';
+            document.getElementById('itemCategory').value = 'is';
+            document.getElementById('multipleMediaInput').value = '';
+            
+            const label = document.getElementById('uploadStatusLabel');
+            label.classList.remove('has-media');
+            label.innerText = "📷 Fotoğraflar / Videolar Ekle (Birden Fazla Seçebilirsin)";
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Arşive Güvenle Kaydet";
+            submitBtn.classList.remove('edit-mode');
+            
+            document.getElementById('formTitle').innerText = "Yeni Arşiv Kaydı";
+            tempMediaList = [];
+        }
+
         function shareToWhatsApp(title, content) {
             const text = encodeURIComponent(`*${title}*\n\n${content}`);
-            // iOS cihazlarda doğrudan WhatsApp uygulamasını tetikleyen en kararlı url yapısı
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         }
 
         function deleteItem(id) {
-            if(confirm('Silmek istediğinize emin misiniz?')) {
+            if(confirm('Bu kaydı tamamen silmek istediğinize emin misiniz?')) {
                 ARSIV_DATA = ARSIV_DATA.filter(item => item.id !== id);
                 saveToStorage();
                 searchAndFilter();
-                showToast('Silindi.');
+                showToast('Kayıt silindi.');
+                if (document.getElementById('editItemId').value == id) {
+                    resetForm();
+                }
             }
         }
 
