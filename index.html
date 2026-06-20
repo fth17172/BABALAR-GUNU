@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-color-scheme=dark, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Baba Kabini Pro v3.5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Baba Kabini Pro v4.0</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -84,9 +84,9 @@
             outline: none;
         }
 
-        /* Çift Medya Yükleme Alanı */
+        /* Çift Medya Yükleme Alanı - Varsayılan olarak gizli */
         .media-row {
-            display: flex;
+            display: none;
             gap: 10px;
             margin-bottom: 12px;
         }
@@ -191,7 +191,6 @@
             margin-bottom: 12px;
         }
 
-        /* Önlü Arkalı Görünüm */
         .card-media-wrapper {
             display: flex;
             gap: 8px;
@@ -209,10 +208,6 @@
             overflow: hidden;
             background: #000;
             position: relative;
-        }
-
-        .card-media-box.half {
-            flex: 0 0 100%;
         }
 
         .card-media-box img, .card-media-box video {
@@ -255,7 +250,7 @@
         }
 
         .btn-copy { background-color: var(--border-color); color: var(--text-main); }
-        .btn-share { background-color: var(--accent-color); color: var(--bg-color); }
+        .btn-share { background-color: #25d366; color: #fff; } /* WhatsApp Yeşili */
         .btn-delete { background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); flex: 0 0 auto; }
 
         .toast {
@@ -282,16 +277,16 @@
 
     <header>
         <h1>Baba Kabini Pro</h1>
-        <p>Arkalı Önlü Medya Arşivi & Hızlı Paylaşım</p>
+        <p>Akıllı Filtre & Doğrudan WhatsApp Paylaşımı</p>
     </header>
 
     <div class="form-container">
         <div class="form-title">Yeni Arşiv Kaydı</div>
-        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Ehliyet veya Ruhsat)"></div>
+        <div class="input-group"><input type="text" id="itemTitle" class="input-field" placeholder="Başlık (Örn: Şirket IBAN veya Ehliyet)"></div>
         <div class="input-group"><textarea id="itemContent" class="input-field" style="height: 60px; resize: none;" placeholder="İçerik, IBAN veya Not..."></textarea></div>
         
         <div class="input-group">
-            <select id="itemCategory" class="select-field">
+            <select id="itemCategory" class="select-field" onchange="toggleMediaRow()">
                 <option value="is">💼 İş Dünyası</option>
                 <option value="finans">💳 Finans / IBAN</option>
                 <option value="fatura">📄 Faturalar</option>
@@ -300,7 +295,7 @@
             </select>
         </div>
 
-        <div class="media-row">
+        <div class="media-row" id="mediaRow">
             <div class="media-box" id="frontBox" onclick="document.getElementById('frontInput').click()">
                 <span id="frontLabel">📷 Ön Yüz / Foto 1</span>
                 <input type="file" id="frontInput" accept="image/*,video/*" style="display: none;" onchange="processMedia(event, 'front')">
@@ -342,7 +337,29 @@
             }
         }
 
-        // GENİŞLETİLMİŞ MEDYA İŞLEME VE SIKIŞTIRMA MOTORU (iOS FORMAT KORUMALI)
+        // KATEGORİ DEĞİŞİNCE FOTOĞRAF ALANINI GÖSTER/GİZLE
+        function toggleMediaRow() {
+            const category = document.getElementById('itemCategory').value;
+            const mediaRow = document.getElementById('mediaRow');
+            if (category === 'belge') {
+                mediaRow.style.display = 'flex';
+            } else {
+                mediaRow.style.display = 'none';
+                resetMediaInputs(); // Başka kategoriye geçerse seçilen resimleri temizle
+            }
+        }
+
+        function resetMediaInputs() {
+            document.getElementById('frontInput').value = '';
+            document.getElementById('backInput').value = '';
+            document.getElementById('frontBox').classList.remove('ready');
+            document.getElementById('backBox').classList.remove('ready');
+            document.getElementById('frontLabel').innerText = "📷 Ön Yüz / Foto 1";
+            document.getElementById('backLabel').innerText = "📷 Arka Yüz / Foto 2";
+            tempFrontMedia = null; tempFrontType = null;
+            tempBackMedia = null; tempBackType = null;
+        }
+
         function processMedia(event, side) {
             const file = event.target.files[0];
             if (!file) return;
@@ -350,7 +367,6 @@
             const type = file.type.split('/')[0];
             const fileExt = file.name.split('.').pop().toLowerCase();
             
-            // Apple HEIC ve QuickTime MOV format uyumluluk koruması
             let targetType = type;
             if (fileExt === 'heic' || fileExt === 'heif') targetType = 'image';
             if (fileExt === 'mov') targetType = 'video';
@@ -366,7 +382,6 @@
                         let width = img.width;
                         let height = img.height;
                         
-                        // LocalStorage'ı patlatmamak için max 700px sıkıştırma çözünürlüğü
                         const MAX_DIM = 700;
                         if (width > height && width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
                         else if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
@@ -376,13 +391,12 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressedData = canvas.toDataURL('image/jpeg', 0.4); // %40 kalite ile sıkıştırma
+                        const compressedData = canvas.toDataURL('image/jpeg', 0.4);
                         setMediaState(side, compressedData, 'image');
                     };
                 } else {
-                    // Video dosyaları için 3MB limiti
                     if (file.size > 3 * 1024 * 1024) {
-                        alert("Video boyutu çok yüksek! Alan kazanmak için lütfen 3MB altı kısa bir video yükleyin.");
+                        alert("Video boyutu çok yüksek! Lütfen 3MB altı kısa bir video yükleyin.");
                         return;
                     }
                     setMediaState(side, e.target.result, 'video');
@@ -394,17 +408,15 @@
             if (side === 'front') {
                 tempFrontMedia = data;
                 tempFrontType = type;
-                const box = document.getElementById('frontBox');
-                box.classList.add('ready');
+                document.getElementById('frontBox').classList.add('ready');
                 document.getElementById('frontLabel').innerText = "✓ Ön Hazır";
             } else {
                 tempBackMedia = data;
                 tempBackType = type;
-                const box = document.getElementById('backBox');
-                box.classList.add('ready');
+                document.getElementById('backBox').classList.add('ready');
                 document.getElementById('backLabel').innerText = "✓ Arka Hazır";
             }
-            showToast('Medya hazırlandı.');
+            showToast('Medya hazır.');
         }
 
         function renderCards(data) {
@@ -412,7 +424,7 @@
             container.innerHTML = '';
 
             if(data.length === 0) {
-                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Arşiv boş veya sonuç yok.</div>`;
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);margin-top:10px;font-size:14px;">Sonuç bulunamadı.</div>`;
                 return;
             }
 
@@ -426,14 +438,14 @@
                     if (item.frontMedia) {
                         mediaWrapper += `
                             <div class="card-media-box">
-                                <span class="media-label-tag">ÖN / 1</span>
+                                <span class="media-label-tag">ÖN YÜZ</span>
                                 ${item.frontType === 'image' ? `<img src="${item.frontMedia}">` : `<video src="${item.frontMedia}" controls playsinline></video>`}
                             </div>`;
                     }
                     if (item.backMedia) {
                         mediaWrapper += `
                             <div class="card-media-box">
-                                <span class="media-label-tag">ARKA / 2</span>
+                                <span class="media-label-tag">ARKA YÜZ</span>
                                 ${item.backType === 'image' ? `<img src="${item.backMedia}">` : `<video src="${item.backMedia}" controls playsinline></video>`}
                             </div>`;
                     }
@@ -448,8 +460,8 @@
                     ${item.content ? `<div class="card-content">${item.content}</div>` : ''}
                     ${mediaWrapper}
                     <div class="card-actions">
-                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Metni Kopyala</button>
-                        <button class="btn btn-share" onclick="shareCard('${item.title}', '${item.content}')">Paylaş</button>
+                        <button class="btn btn-copy" onclick="copyToClipboard('${item.content}')">Kopyala</button>
+                        <button class="btn btn-share" onclick="shareToWhatsApp('${item.title}', '${item.content}')">WhatsApp</button>
                         <button class="btn btn-delete" onclick="deleteItem(${item.id})">Sil</button>
                     </div>
                 `;
@@ -463,7 +475,7 @@
             const category = document.getElementById('itemCategory').value;
 
             if(!title) {
-                alert('Lütfen en azından bir başlık girin, baba.');
+                alert('Lütfen bir başlık girin.');
                 return;
             }
 
@@ -472,52 +484,38 @@
                 title,
                 content,
                 category,
-                frontMedia: tempFrontMedia,
-                frontType: tempFrontType,
-                backMedia: tempBackMedia,
-                backType: tempBackType
+                frontMedia: category === 'belge' ? tempFrontMedia : null,
+                frontType: category === 'belge' ? tempFrontType : null,
+                backMedia: category === 'belge' ? tempBackMedia : null,
+                backType: category === 'belge' ? tempBackType : null
             });
 
             saveToStorage();
             searchAndFilter();
 
-            // Form Sıfırlama
+            // Sıfırla
             document.getElementById('itemTitle').value = '';
             document.getElementById('itemContent').value = '';
-            document.getElementById('frontInput').value = '';
-            document.getElementById('backInput').value = '';
+            resetMediaInputs();
+            document.getElementById('itemCategory').value = 'is';
+            toggleMediaRow();
             
-            const fBox = document.getElementById('frontBox'); fBox.classList.remove('ready');
-            const bBox = document.getElementById('backBox'); bBox.classList.remove('ready');
-            document.getElementById('frontLabel').innerText = "📷 Ön Yüz / Foto 1";
-            document.getElementById('backLabel').innerText = "📷 Arka Yüz / Foto 2";
-
-            tempFrontMedia = null; tempFrontType = null;
-            tempBackMedia = null; tempBackType = null;
-            
-            showToast('Arşive başarıyla eklendi!');
+            showToast('Arşive kaydedildi!');
         }
 
-        // iOS NATIVE SHARE (YEREL PAYLAŞIM) ENTEGRASYONU
-        function shareCard(title, content) {
-            if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    text: `${title}\n\n${content}`
-                }).catch((error) => console.log('Paylaşım iptal edildi', error));
-            } else {
-                // Tarayıcı desteklemiyorsa otomatik kopyala
-                copyToClipboard(content);
-                showToast('Paylaşım desteklenmiyor, metin kopyalandı!');
-            }
+        // DOĞRUDAN WHATSAPP PAYLAŞIMI
+        function shareToWhatsApp(title, content) {
+            const text = encodeURIComponent(`*${title}*\n\n${content}`);
+            // iOS cihazlarda doğrudan WhatsApp uygulamasını tetikleyen en kararlı url yapısı
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         }
 
         function deleteItem(id) {
-            if(confirm('Bu arşiv kaydını silmek istediğine emin misin?')) {
+            if(confirm('Silmek istediğinize emin misiniz?')) {
                 ARSIV_DATA = ARSIV_DATA.filter(item => item.id !== id);
                 saveToStorage();
                 searchAndFilter();
-                showToast('Kayıt silindi.');
+                showToast('Silindi.');
             }
         }
 
